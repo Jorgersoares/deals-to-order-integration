@@ -9,7 +9,7 @@ $ npm install
 ```
 - Set MongoDBAtlas URI on .env
 - Set Pipedrive API KEY on .env
-- Set Bling API KEy on .env
+- Set Bling API KEY on .env
 
 ## Running the app
 
