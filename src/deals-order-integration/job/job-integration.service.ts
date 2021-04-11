@@ -7,7 +7,7 @@ export class TasksService {
   constructor(private dealsOrderIntegration: DealsToOrderIntegrationService) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_6PM)
-  handleCron() {
-    this.dealsOrderIntegration.dealToOrder();
+  async handleCron() {
+    await this.dealsOrderIntegration.dealToOrder();
   }
 }
