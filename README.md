@@ -9,7 +9,7 @@ $ npm install
 ```
 - Set MongoDBAtlas URI on .env
 - Set Pipedrive API KEY on .env
-- Set Bling API KEy on .env
+- Set Bling API KEY on .env
 
 ## Running the app
 
@@ -31,7 +31,7 @@ $ npm run start:prod
 
 ## Documentation
 
-To access the Swagger type: `localhost:3000/api`
+To access the Swagger, type: `localhost:3000/api`
 
 ## Technology
 
