@@ -7,7 +7,7 @@ import {
 } from '@nestjs/swagger';
 import { DealsOrderIntegrationResponseDto } from '../../shared/dtos/deals-order-integration-response.dto';
 
-@ApiTags('Integration')
+@ApiTags('Integration endpoints')
 @Controller('deals-order-integration')
 export class DealsOrderIntegrationController {
   constructor(
