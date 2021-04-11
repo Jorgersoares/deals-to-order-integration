@@ -31,7 +31,7 @@ $ npm run start:prod
 
 ## Documentation
 
-To access the Swagger type: `localhost:3000/api`
+To access the Swagger, type: `localhost:3000/api`
 
 ## Technology
 
