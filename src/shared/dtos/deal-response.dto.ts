@@ -1,8 +1,8 @@
 export interface Deal {
+  id: number;
   person_name: string;
   value: number;
-  wontime: Date;
 }
-export interface DealResponse {
+export interface DealResponseDto {
   data: Deal[];
 }

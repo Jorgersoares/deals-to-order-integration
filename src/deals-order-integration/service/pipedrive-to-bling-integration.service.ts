@@ -1,8 +1,13 @@
-import { HttpStatus, Injectable , Logger } from '@nestjs/common';
+import {
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { OrderService } from '../services-integration/order/order.service';
 import { DealService } from '../services-integration/deal/deal.service';
 import { parse } from 'js2xmlparser';
-import { converterDealToOrder } from '../../shared/utils/converter-deal-to-order.function';
+import { converterDealToOrderBling } from '../../shared/utils/bling/converter-deal-to-order-bling.function';
 import { InjectModel } from '@nestjs/mongoose';
 import {
   OrderStats,
@@ -10,64 +15,72 @@ import {
 } from '../../orders-report/schemas/order-stats-schema';
 import { Model } from 'mongoose';
 import { format } from 'date-fns';
+import { DealsToOrderIntegrationService } from './deals-to-order-integration.service';
+import { Deal, DealResponseDto } from '../../shared/dtos/deal-response.dto';
+import { DealsOrderIntegrationResponseDto } from '../../shared/dtos/deals-order-integration-response.dto';
+import { AxiosResponse } from 'axios';
 
 @Injectable()
-export class PipedriveToBlingIntegrationService {
+export class PipedriveToBlingIntegrationService extends DealsToOrderIntegrationService {
   constructor(
     private orderService: OrderService,
     private dealService: DealService,
     @InjectModel(OrderStats.name)
     private orderStatsModel: Model<OrderStatsDocument>,
-  ) {}
+  ) {
+    super();
+  }
 
   private readonly logger = new Logger(PipedriveToBlingIntegrationService.name);
-  private exportDealsQuantity = 0;
+  private exportDealsQuantity: number;
+  private dealResponse: AxiosResponse<DealResponseDto>;
+  private deals: Deal[];
+  private insertOrderResponse: AxiosResponse;
 
-  dealToOrder() {
-    this.dealService.getDealsWon().subscribe(
-      (res) => {
-        res.data.data.forEach((deal) => {
-          this.orderService
-            .insertOrder(parse('pedido', converterDealToOrder(deal)))
-            .subscribe(
-              (res) => {
-                if (res.status === HttpStatus.CREATED.valueOf()) {
-                  this.exportDealsQuantity += 1;
-                  this.saveOrUpdateOrderStats(deal.value);
-                } else {
-                  this.logger.error(res.data, null, 'ORDER');
-                }
-              },
-              (error) => {
-                this.logger.error(error, null, 'ORDER');
-              },
-            );
-        });
+  async dealToOrder(): Promise<DealsOrderIntegrationResponseDto> {
+    try {
+      this.exportDealsQuantity = 0;
+      this.dealResponse = await this.dealService.getDealsWon();
+      this.deals = this.dealResponse.data.data;
+      for (const deal of this.deals) {
+        await this.insertOrder(deal);
+      }
+      return new DealsOrderIntegrationResponseDto(this.exportDealsQuantity);
+    } catch (error) {
+      this.logger.error(error, null, 'INTEGRATION');
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async insertOrder(deal: Deal) {
+    try {
+      this.insertOrderResponse = await this.orderService.insertOrder(
+        parse('pedido', converterDealToOrderBling(deal)),
+      );
+      if (this.insertOrderResponse.status === HttpStatus.CREATED.valueOf()) {
+        this.exportDealsQuantity += 1;
+        await this.saveOrUpdateOrderStats(deal.value);
+      } else {
+        this.logger.error(this.insertOrderResponse.data, null, 'ORDER');
+      }
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
+  }
+
+  private async saveOrUpdateOrderStats(value) {
+    await this.orderStatsModel.findOneAndUpdate(
+      {
+        date: format(new Date(), 'dd/MM/yyyy'),
       },
-      (error) => {
-        this.logger.error(error, null, 'DEAL');
+      {
+        $inc: {
+          amount: value,
+        },
+      },
+      {
+        upsert: true,
       },
     );
-    return { exportDealsQuantity: this.exportDealsQuantity };
   }
-
-  private saveOrUpdateOrderStats(value) {
-    this.orderStatsModel
-      .findOneAndUpdate(
-        {
-          date: format(new Date(), 'dd/MM/yyyy'),
-        },
-        {
-          $inc: {
-            amount: value,
-          },
-        },
-        {
-          upsert: true,
-        },
-      )
-      .then(() => null);
-  }
-
-  private insertOrder()
 }

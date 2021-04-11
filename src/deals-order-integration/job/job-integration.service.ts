@@ -5,9 +5,8 @@ import { DealsToOrderIntegrationService } from '../service/deals-to-order-integr
 @Injectable()
 export class TasksService {
   constructor(private dealsOrderIntegration: DealsToOrderIntegrationService) {}
-  private readonly logger = new Logger(TasksService.name);
 
-  @Cron(CronExpression.EVERY_5_MINUTES)
+  @Cron(CronExpression.EVERY_DAY_AT_6PM)
   handleCron() {
     this.dealsOrderIntegration.dealToOrder();
   }

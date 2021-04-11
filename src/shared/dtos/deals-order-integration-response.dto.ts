@@ -2,8 +2,8 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class DealsOrderIntegrationResponseDto {
   constructor(dealsExported) {
-    this.exportDealsQuantity = dealsExported;
+    this.exportDeals = dealsExported;
   }
   @ApiProperty()
-  exportDealsQuantity: number;
+  exportDeals: number;
 }

@@ -1,6 +1,6 @@
 import { Deal } from '../../dtos/deal-response.dto';
 
-export function dealToOrderBling(deal: Deal) {
+export function converterDealToOrderBling(deal: Deal) {
   return {
     cliente: {
       nome: deal.person_name,

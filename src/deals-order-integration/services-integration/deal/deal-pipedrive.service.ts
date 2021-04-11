@@ -1,17 +1,26 @@
 import { HttpService, Injectable } from '@nestjs/common';
 import { DealResponseDto } from '../../../shared/dtos/deal-response.dto';
 import { DealService } from './deal.service';
+import { AxiosResponse } from 'axios';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class DealPipedriveService extends DealService {
-  constructor(private httpService: HttpService) {
+  constructor(
+    private httpService: HttpService,
+    private configService: ConfigService,
+  ) {
     super();
   }
 
-  API_URL =
-    'https://api.pipedrive.com/v1/deals?status=won&start=0&api_token=b22c19aa05cb524997d8bb134cf08a10f92afe50';
+  API_URL = this.configService.get<string>('PIPEDRIVE_API_URL');
+  API_KEY = this.configService.get<string>('PIPEDRIVE_API_TOKEN');
 
-  getDealsWon() {
-    return this.httpService.get<DealResponseDto>(this.API_URL);
+  getDealsWon(): Promise<AxiosResponse<DealResponseDto>> {
+    return this.httpService
+      .get<DealResponseDto>(
+        `${this.API_URL}/deals?status=won&start=0&api_token=${this.API_KEY}`,
+      )
+      .toPromise();
   }
 }

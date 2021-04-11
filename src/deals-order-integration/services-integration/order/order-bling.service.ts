@@ -1,19 +1,24 @@
 import { OrderService } from './order.service';
-import { HttpService } from '@nestjs/common';
+import { HttpService, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
+@Injectable()
 export class OrderBlingService extends OrderService {
-  constructor(private httpService: HttpService) {
+  constructor(
+    private httpService: HttpService,
+    private configService: ConfigService,
+  ) {
     super();
   }
-  API_URL = 'https://bling.com.br/Api/v2/pedido/json/';
+  API_URL = this.configService.get<string>('BLING_API_URL');
+  API_KEY = this.configService.get<string>('BLING_API_TOKEN');
 
-  insertOrder(xml: string) {
+  insertOrder(order) {
     const params = new URLSearchParams();
-    params.append(
-      'apikey',
-      '9bf8a354b9aa185fa8c9ceb6cf816cd246884cce4f77bb5cae01050304982f5f4ab17324',
-    );
-    params.append('xml', xml);
-    return this.httpService.post(this.API_URL, params);
+    params.append('apikey', this.API_KEY);
+    params.append('xml', order);
+    return this.httpService
+      .post<any>(`${this.API_URL}/pedido/json/`, params)
+      .toPromise();
   }
 }
