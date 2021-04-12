@@ -16,7 +16,11 @@ import {
 import { Model } from 'mongoose';
 import { format } from 'date-fns';
 import { DealsToOrderIntegrationService } from './deals-to-order-integration.service';
-import { Deal, DealResponseDto } from '../../shared/dtos/deal-response.dto';
+import {
+  Deal,
+  DealResponseDataDto,
+  DealResponseDto,
+} from '../../shared/dtos/deal-response.dto';
 import { DealsOrderIntegrationResponseDto } from '../../shared/dtos/deals-order-integration-response.dto';
 import { AxiosResponse } from 'axios';
 
@@ -34,14 +38,14 @@ export class PipedriveToBlingIntegrationService extends DealsToOrderIntegrationS
   private readonly logger = new Logger(PipedriveToBlingIntegrationService.name);
   private exportDealsQuantity: number;
   private dealResponse: AxiosResponse<DealResponseDto>;
-  private deals: Deal[];
+  private deals;
   private insertOrderResponse: AxiosResponse;
 
   async dealToOrder(): Promise<DealsOrderIntegrationResponseDto> {
     try {
       this.exportDealsQuantity = 0;
-      this.dealResponse = await this.dealService.getDealsWon();
-      this.deals = this.dealResponse.data.data;
+      this.dealResponse = await this.dealService.getDealsWonToday();
+      this.deals = this.dealResponse.data.data[0].deals;
       for (const deal of this.deals) {
         await this.insertOrder(deal);
       }

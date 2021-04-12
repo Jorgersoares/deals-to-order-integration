@@ -3,6 +3,11 @@ export interface Deal {
   person_name: string;
   value: number;
 }
+
+export interface DealResponseDataDto {
+  deals: Deal[];
+}
+
 export interface DealResponseDto {
-  data: Deal[];
+  data: DealResponseDataDto[];
 }
